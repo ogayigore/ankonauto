@@ -22,10 +22,12 @@ class AuthViewController: UIViewController {
     
     //MARK: - Methods
     
+    //Вход с Google
     @objc func signInWithGoogle() {
+        
         guard let clientID = FirebaseApp.app()?.options.clientID else { return }
         
-        let config = GIDConfiguration(clientID: clientID)
+        //Настройка конфигурации GoogleSignIn
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { result, error in
             if let error = error {
                 print("Google Sign-In error \(error.localizedDescription)")
@@ -33,7 +35,28 @@ class AuthViewController: UIViewController {
             }
             guard let user = result?.user else { return }
             print("User email: \(user.profile?.email ?? "No email")")
+            
+            guard let idToken = user.idToken?.tokenString else { return }
+            let accessToken = user.accessToken.tokenString
+            
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+            
+            //Авторизация в firebase
+            Auth.auth().signIn(with: credential) { authResult, error in
+                if let error = error {
+                    print("Firebase Sign-In error: \(error.localizedDescription)")
+                    return
+                }
+                
+                print("User signed in with Google: \(authResult?.user.displayName ?? "No name")")
+                self.goToHomeViewController()
+            }
         }
+    }
+    
+    //Переход на главный экран
+    func goToHomeViewController() {
+        
     }
     
     //MARK: - Setup UI
