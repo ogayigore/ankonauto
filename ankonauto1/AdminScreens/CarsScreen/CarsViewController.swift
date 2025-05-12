@@ -33,6 +33,8 @@ class CarsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupUI()
+        loadCars()
     }
     
     //MARK: - UI Elements
@@ -42,7 +44,6 @@ class CarsViewController: UIViewController {
         layout.scrollDirection = .vertical
         layout.minimumLineSpacing = 10
         layout.minimumInteritemSpacing = 20
-        layout.itemSize = CGSize(width: view.frame.width / 2 - 20, height: 200)
         layout.collectionView?.translatesAutoresizingMaskIntoConstraints = false
         return layout
     }()
@@ -72,6 +73,186 @@ class CarsViewController: UIViewController {
         ])
         
     }
+    
+    func loadCars() {
+        cars = [
+            CarModel(id: "1",
+                     brand: "BMW",
+                     model: "3-Серия",
+                     dateOfManufacture: "12-2020",
+                     mileage: 107580,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Задний",
+                     engineCapacity: 2998,
+                     enginePower: 387,
+                     equipment: "М340i",
+                     color: "Чёрный",
+                     images: ["bmw"],
+                     dateAdded: "12.05.2025",
+                     price: 5000000),
+            CarModel(id: "2",
+                     brand: "Mercedes-Benz",
+                     model: "C-класс",
+                     dateOfManufacture: "12-2022",
+                     mileage: 11915,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Полный",
+                     engineCapacity: 1999,
+                     enginePower: 258,
+                     equipment: "C300 4MATIC AMG Line",
+                     color: "Белый",
+                     images: ["benz"],
+                     dateAdded: "12.05.2025", price: 6000000),
+            CarModel(id: "1",
+                     brand: "BMW",
+                     model: "3-Серия",
+                     dateOfManufacture: "12-2020",
+                     mileage: 107580,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Задний",
+                     engineCapacity: 2998,
+                     enginePower: 387,
+                     equipment: "М340i",
+                     color: "Чёрный",
+                     images: ["bmw"],
+                     dateAdded: "12.05.2025",
+                     price: 5000000),
+            CarModel(id: "2",
+                     brand: "Mercedes-Benz",
+                     model: "C-класс",
+                     dateOfManufacture: "12-2022",
+                     mileage: 11915,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Полный",
+                     engineCapacity: 1999,
+                     enginePower: 258,
+                     equipment: "C300 4MATIC AMG Line",
+                     color: "Белый",
+                     images: ["benz"],
+                     dateAdded: "12.05.2025", price: 6000000),
+            CarModel(id: "1",
+                     brand: "BMW",
+                     model: "3-Серия",
+                     dateOfManufacture: "12-2020",
+                     mileage: 107580,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Задний",
+                     engineCapacity: 2998,
+                     enginePower: 387,
+                     equipment: "М340i",
+                     color: "Чёрный",
+                     images: ["bmw"],
+                     dateAdded: "12.05.2025",
+                     price: 5000000),
+            CarModel(id: "2",
+                     brand: "Mercedes-Benz",
+                     model: "C-класс",
+                     dateOfManufacture: "12-2022",
+                     mileage: 11915,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Полный",
+                     engineCapacity: 1999,
+                     enginePower: 258,
+                     equipment: "C300 4MATIC AMG Line",
+                     color: "Белый",
+                     images: ["benz"],
+                     dateAdded: "12.05.2025", price: 6000000),
+            CarModel(id: "1",
+                     brand: "BMW",
+                     model: "3-Серия",
+                     dateOfManufacture: "12-2020",
+                     mileage: 107580,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Задний",
+                     engineCapacity: 2998,
+                     enginePower: 387,
+                     equipment: "М340i",
+                     color: "Чёрный",
+                     images: ["bmw"],
+                     dateAdded: "12.05.2025",
+                     price: 5000000),
+            CarModel(id: "2",
+                     brand: "Mercedes-Benz",
+                     model: "C-класс",
+                     dateOfManufacture: "12-2022",
+                     mileage: 11915,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Полный",
+                     engineCapacity: 1999,
+                     enginePower: 258,
+                     equipment: "C300 4MATIC AMG Line",
+                     color: "Белый",
+                     images: ["benz"],
+                     dateAdded: "12.05.2025", price: 6000000),
+            CarModel(id: "1",
+                     brand: "BMW",
+                     model: "3-Серия",
+                     dateOfManufacture: "12-2020",
+                     mileage: 107580,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Задний",
+                     engineCapacity: 2998,
+                     enginePower: 387,
+                     equipment: "М340i",
+                     color: "Чёрный",
+                     images: ["bmw"],
+                     dateAdded: "12.05.2025",
+                     price: 5000000),
+            CarModel(id: "2",
+                     brand: "Mercedes-Benz",
+                     model: "C-класс",
+                     dateOfManufacture: "12-2022",
+                     mileage: 11915,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Полный",
+                     engineCapacity: 1999,
+                     enginePower: 258,
+                     equipment: "C300 4MATIC AMG Line",
+                     color: "Белый",
+                     images: ["benz"],
+                     dateAdded: "12.05.2025", price: 6000000),
+            CarModel(id: "1",
+                     brand: "BMW",
+                     model: "3-Серия",
+                     dateOfManufacture: "12-2020",
+                     mileage: 107580,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Задний",
+                     engineCapacity: 2998,
+                     enginePower: 387,
+                     equipment: "М340i",
+                     color: "Чёрный",
+                     images: ["bmw"],
+                     dateAdded: "12.05.2025",
+                     price: 5000000),
+            CarModel(id: "2",
+                     brand: "Mercedes-Benz",
+                     model: "C-класс",
+                     dateOfManufacture: "12-2022",
+                     mileage: 11915,
+                     fuelType: "Бензин",
+                     transmission: "Автомат",
+                     driveType: "Полный",
+                     engineCapacity: 1999,
+                     enginePower: 258,
+                     equipment: "C300 4MATIC AMG Line",
+                     color: "Белый",
+                     images: ["benz"],
+                     dateAdded: "12.05.2025", price: 6000000),
+        ]
+        collectionView.reloadData()
+    }
 }
 
 //MARK: - UICollectionViewDataSource & UICollectionViewDelegateFlowLayout
@@ -88,8 +269,23 @@ extension CarsViewController: UICollectionViewDataSource, UICollectionViewDelega
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let car = cars[indexPath.row]
         print("Выбран - \(car.brand) \(car.model)")
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let numberOfItemsPerRow: CGFloat = 2
+        let padding: CGFloat = 16
+        let spacing: CGFloat = 16
+        
+        let totalSpacing = padding * 2 + spacing * (numberOfItemsPerRow - 1)
+        let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
+        
+        return CGSize(width: itemWidth, height: 250)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
     }
 }
