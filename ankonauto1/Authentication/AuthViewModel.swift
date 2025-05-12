@@ -136,4 +136,22 @@ class AuthViewModel {
             }
         }
     }
+    
+    //MARK: - Sign Out
+    
+    func signOut(completion: @escaping (Result<Void, Error>) -> Void) {
+        let firebaseAuth = Auth.auth()
+        
+        do {
+            //Google Sign Out
+            GIDSignIn.sharedInstance.signOut()
+            
+            //Firebase Sign Out
+            try firebaseAuth.signOut()
+            
+            completion(.success(()))
+        } catch let signOutError as NSError {
+            completion(.failure(signOutError))
+        }
+    }
 }

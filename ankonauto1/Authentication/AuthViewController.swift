@@ -11,7 +11,18 @@ class AuthViewController: UIViewController {
     
     //MARK: - Properties
     
-    let viewModel = AuthViewModel()
+    private let viewModel: AuthViewModel
+    
+    //MARK: - Initializers
+    
+    init(viewModel: AuthViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     //MARK: - Lifecicle
     
@@ -39,7 +50,7 @@ class AuthViewController: UIViewController {
                     if userModel.isAdmin {
                         //Переход в интерфейс админа
                         print("Успешный вход: \(userModel.uid)")
-                        let tabBar = AdminTabBarController()
+                        let tabBar = AdminTabBarController(authViewModel: self!.viewModel, currentUser: userModel)
                         tabBar.modalPresentationStyle = .fullScreen
                         self?.present(tabBar, animated: true)
                     } else {
