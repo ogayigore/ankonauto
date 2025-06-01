@@ -63,6 +63,8 @@ class CarsViewController: UIViewController {
     func setupUI() {
         view.backgroundColor = .black
         
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addCar))
+        
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
@@ -72,6 +74,11 @@ class CarsViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
+    }
+    
+    @objc func addCar() {
+        let newCarVC = NewCarViewController()
+        navigationController?.pushViewController(newCarVC, animated: true)
     }
     
     func loadCars() {
@@ -88,7 +95,7 @@ class CarsViewController: UIViewController {
                      enginePower: 387,
                      equipment: "М340i",
                      color: "Чёрный",
-                     images: ["bmw"],
+                     images: ["bmw", "bmw2", "bmw3", "bmw4", "bmw5", "bmw6", "bmw7", "bmw8", "bmw9", "bmw10", "bmw11", "bmw12", "bmw13", "bmw14", "bmw15", "bmw16", "bmw17", "bmw18", "bmw19", "bmw20"],
                      dateAdded: "12.05.2025",
                      price: 5000000),
             CarModel(id: "2",
@@ -233,7 +240,7 @@ class CarsViewController: UIViewController {
                      enginePower: 387,
                      equipment: "М340i",
                      color: "Чёрный",
-                     images: ["bmw"],
+                     images: ["bmw", "bmw2", "bmw3", "bmw4", "bmw5", "bmw6", "bmw7", "bmw8", "bmw9", "bmw10", "bmw11", "bmw12", "bmw13", "bmw14", "bmw15", "bmw16", "bmw17", "bmw18", "bmw19", "bmw20"],
                      dateAdded: "12.05.2025",
                      price: 5000000),
             CarModel(id: "2",
@@ -272,6 +279,9 @@ extension CarsViewController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let car = cars[indexPath.row]
         print("Выбран - \(car.brand) \(car.model)")
+        let carDetalsVC = CarDetailsViewController()
+        carDetalsVC.car = car
+        navigationController?.pushViewController(carDetalsVC, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -286,6 +296,6 @@ extension CarsViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
+        return UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
     }
 }

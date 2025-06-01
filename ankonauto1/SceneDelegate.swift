@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -17,11 +18,27 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
         self.window = UIWindow(windowScene: scene)
         
-        let sharedAuthViewModel = AuthViewModel()
-        let authVC = AuthViewController(viewModel: sharedAuthViewModel)
-        self.window?.rootViewController = authVC
-        
-        self.window?.makeKeyAndVisible()
+        if let firebaseUser = Auth.auth().currentUser {
+            AuthViewModel().fetchUserProfile(uid: firebaseUser.uid) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let userModel):
+                        if userModel.isAdmin == true {
+                            let tabBarController = AdminTabBarController(authViewModel: AuthViewModel(), currentUser: userModel)
+                            self.window?.rootViewController = tabBarController
+                        } else {
+                            print("Пользователь не администратор")
+                        }
+                    case .failure:
+                        self.window?.rootViewController = AuthViewController(viewModel: AuthViewModel())
+                    }
+                    self.window?.makeKeyAndVisible()
+                }
+            }
+        } else {
+            self.window?.rootViewController = AuthViewController(viewModel: AuthViewModel())
+            self.window?.makeKeyAndVisible()
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

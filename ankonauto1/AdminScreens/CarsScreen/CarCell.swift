@@ -160,13 +160,22 @@ class CarCell: UICollectionViewCell {
     
     func configure(with car: CarModel) {
         imageView.image = UIImage(named: car.images.first ?? "")
-        priceLabel.text = "\(car.price)₽"
+        priceLabel.text = "\(car.price.formattedPrice)₽"
         titleLabel.text = "\(car.brand) \(car.model)"
         equipmentLabel.text = "\(car.equipment)"
         engineLabel.text = "\(car.engineCapacity)литра \(car.fuelType) \(car.enginePower)л.с."
         transmissionLabel.text = "\(car.transmission)"
         driveTypeLabel.text = "\(car.driveType) привод"
-        mileageLabel.text = "\(car.mileage) km"
+        mileageLabel.text = "\(car.mileage) км"
         dateOfManufactureLabel.text = "\(car.dateOfManufacture)"
+    }
+}
+
+extension Int {
+    var formattedPrice: String {
+        let formatter = NumberFormatter()
+        formatter.groupingSeparator = "."
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
     }
 }
