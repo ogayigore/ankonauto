@@ -50,9 +50,10 @@ class AuthViewController: UIViewController {
                     if userModel.isAdmin {
                         //Переход в интерфейс админа
                         print("Успешный вход: \(userModel.uid)")
-                        let tabBar = AdminTabBarController(authViewModel: self!.viewModel, currentUser: userModel)
+                        guard let self = self else { return }
+                        let tabBar = AdminTabBarController(authViewModel: self.viewModel, currentUser: userModel)
                         tabBar.modalPresentationStyle = .fullScreen
-                        self?.present(tabBar, animated: true)
+                        self.present(tabBar, animated: true)
                     } else {
                         //Переход в интерфейс клиента
                         print("Не админ")
@@ -67,10 +68,6 @@ class AuthViewController: UIViewController {
             }
             
         }
-    }
-    //Переход на главный экран
-    func goToHomeViewController() {
-        
     }
     
     //MARK: - UI elements

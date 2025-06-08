@@ -40,7 +40,9 @@ class AdminTabBarController: UITabBarController {
         let carsVC = CarsViewController(authViewModel: authViewModel, currentUser: currentUser)
         let ordersVC = OrdersViewController(authViewModel: authViewModel, currentUser: currentUser)
         let reviewsVC = ReviewsViewController(authViewModel: authViewModel, currentUser: currentUser)
-        let moreVC = MoreViewController(authViewModel: authViewModel, currentUser: currentUser)
+
+        let moreViewModel = MoreViewModel(authService: AuthService())
+        let moreVC = MoreViewController(moreViewModel: moreViewModel, currentUser: currentUser)
         
         viewControllers = [
             createNavController(for: carsVC, title: "Каталог", image: UIImage(systemName: "car.fill")!),

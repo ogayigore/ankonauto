@@ -13,6 +13,10 @@ import FirebaseFirestore
 
 class AuthViewModel {
     
+    //MARK: - Properties
+    
+    private let authService = AuthService()
+    
     //MARK: - Google Sign In
     
     func signInWithGoogle(presentingVC: UIViewController, completion: @escaping (Result<UserModel, Error>) -> Void) {
@@ -37,121 +41,13 @@ class AuthViewModel {
             
             let accessToken = user.accessToken.tokenString
             
-            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-            
-            Auth.auth().signIn(with: credential) { authResult, error in
-                if let error = error {
-                    completion(.failure(error))
-                    return
-                }
-                
-                guard let firebaseUser = authResult?.user else {
-                    completion(.failure(NSError(domain: "Firebase user missing", code: -1)))
-                    return
-                }
-                
-                let db = Firestore.firestore()
-                let userRef = db.collection("users").document(firebaseUser.uid)
-                
-                userRef.getDocument { snapshot, error in
-                    if let error = error {
-                        completion(.failure(error))
-                        return
-                    }
-                    
-                    if let data = snapshot?.data() {
-                        //Пользователь существует
-                        let userModel = UserModel(uid: firebaseUser.uid,
-                                                  firstName: data["firstName"] as? String,
-                                                  lastName: data["lastName"] as? String,
-                                                  phoneNumber: data["phoneNumber"] as? String,
-                                                  email: data["email"] as? String,
-                                                  isAdmin: data["isAdmin"] as? Bool ?? false)
-                        completion(.success(userModel))
-                    } else {
-                        //Новый пользователь
-                        let newUserData: [String: Any] = [
-                            "uid": firebaseUser.uid,
-                            "firstName": "",
-                            "lastName": "",
-                            "phoneNumber": firebaseUser.phoneNumber ?? "",
-                            "email": firebaseUser.email ?? "",
-                            "isAdmin": true
-                        ]
-                        
-                        userRef.setData(newUserData) { error in
-                            if let error = error {
-                                completion(.failure(error))
-                            } else {
-                                let userModel = UserModel(uid: firebaseUser.uid,
-                                                          firstName: "",
-                                                          lastName: "",
-                                                          phoneNumber: firebaseUser.phoneNumber,
-                                                          email: firebaseUser.email,
-                                                          isAdmin: true)
-                                completion(.success(userModel))
-                            }
-                        }
-                    }
-                }
+            self.authService.signInWithGoogle(idToken: idToken, accessToken: accessToken) { result in
+                completion(result)
             }
         }
     }
     
-    //MARK: - Save new user
-    
-    func saveUserToFirestore(user: User, completion: @escaping (Error?) -> Void) {
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(user.uid)
-        
-        let userData: [String: Any] = [
-            "uid": user.uid,
-            "email": user.email ?? "",
-            "isAdmin": false,
-            "firstName": "",
-            "lastName": "",
-            "phoneNumber": user.phoneNumber ?? ""
-        ]
-        
-        userRef.setData(userData, merge: true, completion: completion)
-    }
-    
-    //MARK: - Fetch user
-    
-    func fetchUserProfile(uid: String, completion: @escaping (Result<UserModel, Error>) -> Void) {
-        let docRef = Firestore.firestore().collection("users").document(uid)
-        docRef.getDocument { snapshot, error in
-            if let error = error {
-                completion(.failure(error))
-            } else if let data = snapshot?.data() {
-                let user = UserModel(uid: uid,
-                                     firstName: data["firstName"] as? String,
-                                     lastName: data["lastName"] as? String,
-                                     phoneNumber: data["phoneNumber"] as? String,
-                                     email: data["email"] as? String,
-                                     isAdmin: data["isAdmin"] as? Bool ?? false)
-                completion(.success(user))
-            } else {
-                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Пользователь не найден"])))
-            }
-        }
-    }
-    
-    //MARK: - Sign Out
-    
-    func signOut(completion: @escaping (Result<Void, Error>) -> Void) {
-        let firebaseAuth = Auth.auth()
-        
-        do {
-            //Google Sign Out
-            GIDSignIn.sharedInstance.signOut()
-            
-            //Firebase Sign Out
-            try firebaseAuth.signOut()
-            
-            completion(.success(()))
-        } catch let signOutError as NSError {
-            completion(.failure(signOutError))
-        }
+    func fetchUserProfile(uid: String, competion: @escaping (Result<UserModel, Error>) -> Void) {
+        authService.fetchUserProfile(uid: uid, completion: competion)
     }
 }

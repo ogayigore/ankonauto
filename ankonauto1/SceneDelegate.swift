@@ -17,9 +17,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         guard let scene = (scene as? UIWindowScene) else { return }
         self.window = UIWindow(windowScene: scene)
+        let authViewModel = AuthViewModel()
         
         if let firebaseUser = Auth.auth().currentUser {
-            AuthViewModel().fetchUserProfile(uid: firebaseUser.uid) { result in
+            authViewModel.fetchUserProfile(uid: firebaseUser.uid) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let userModel):

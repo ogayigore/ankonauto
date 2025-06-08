@@ -10,14 +10,13 @@ import UIKit
 class MoreViewController: UIViewController {
     
     //MARK: - Properties
-    
-    private let authViewModel: AuthViewModel
+    private let moreViewModel: MoreViewModel
     private let currentUser: UserModel
     
     //MARK: - Initializers
     
-    init(authViewModel: AuthViewModel, currentUser: UserModel) {
-        self.authViewModel = authViewModel
+    init(moreViewModel: MoreViewModel, currentUser: UserModel) {
+        self.moreViewModel = moreViewModel
         self.currentUser = currentUser
         super.init(nibName: nil, bundle: nil)
     }
@@ -58,11 +57,12 @@ class MoreViewController: UIViewController {
     }
     
     @objc func signOut() {
-        authViewModel.signOut { [weak self] result in
+        moreViewModel.signOut { [weak self] result in
             switch result {
             case .success:
                 DispatchQueue.main.async {
-                    let authVC = AuthViewController(viewModel: self!.authViewModel)
+                    let authViewModel = AuthViewModel()
+                    let authVC = AuthViewController(viewModel: authViewModel)
                     authVC.modalPresentationStyle = .fullScreen
                     self?.present(authVC, animated: true)
                 }
