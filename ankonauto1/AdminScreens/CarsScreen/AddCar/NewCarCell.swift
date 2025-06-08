@@ -40,7 +40,7 @@ class NewCarCell: UITableViewCell {
         return textField
     }()
     
-    lazy var picker: UIPickerView? = {
+    lazy var picker: UIPickerView = {
         let picker = UIPickerView()
         picker.backgroundColor = UIColor(white: 1, alpha: 0.1)
         picker.dataSource = self
@@ -81,19 +81,32 @@ class NewCarCell: UITableViewCell {
         ])
     }
     
-    func configure(with field: CarField) {
+    func configure(with field: CarField, options: [String] = [], selectedValue: String? = nil) {
         self.currentField = field
+        self.options = options
         titleLabel.text = field.rawValue
-        inputTextField.keyboardType = field.keyboardType
+        inputTextField.placeholder = field.rawValue.capitalized
         
-        if let options = field.options {
-            self.options = options
-            inputTextField.inputView = self.picker
+        if let selected = selectedValue {
+            inputTextField.text = selected
         } else {
-            inputTextField.inputView = nil
-            picker = nil
-            inputTextField.inputAccessoryView = nil
+            inputTextField.text = nil
         }
+        
+        if options.isEmpty {
+            inputTextField.inputView = nil
+        } else {
+            inputTextField.inputView = options.isEmpty ? nil : picker
+            picker.reloadAllComponents()
+        }
+        
+        inputTextField.reloadInputViews()
+    }
+    
+    func setOptions(_ options: [String]) {
+        self.options = options
+        picker.reloadAllComponents()
+        inputTextField.inputView = options.isEmpty ? nil : picker
     }
     
     @objc private func donePressed() {

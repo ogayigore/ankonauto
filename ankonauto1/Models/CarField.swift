@@ -11,6 +11,7 @@ import UIKit
 enum CarField: String, CaseIterable {
     case brand = "Марка"
     case model = "Модель"
+    case generation = "Поколение"
     case dateOfManufacture = "Год выпуска"
     case mileage = "Пробег"
     case fuelType = "Тип двигателя"
@@ -21,6 +22,10 @@ enum CarField: String, CaseIterable {
     case equipment = "Комплектация"
     case color = "Цвет"
     case price = "Цена"
+    
+    var isSelectable: Bool {
+        return self == .brand || self == .model || self == .generation
+    }
     
     var options: [String]? {
         switch self {

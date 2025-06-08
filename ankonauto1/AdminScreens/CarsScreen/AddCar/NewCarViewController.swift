@@ -11,12 +11,28 @@ class NewCarViewController: UIViewController {
     
     //MARK: - Properties
     
+    private let viewModel = NewCarViewModel()
     var carData: [CarField: String] = [:]
     
     //MARK: - Lifecicle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel.onDataUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+            }
+        }
+        viewModel.fetchBrands { [weak self] result in
+            switch result {
+            case .success(_):
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+            case .failure(let error):
+                print("Ошибка загрузки брендов: \(error.localizedDescription)")
+            }
+        }
         setupUI()
         addObserver()
         hideKeyboard()
@@ -90,8 +106,29 @@ extension NewCarViewController: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
         let field = CarField.allCases[indexPath.row]
-        cell.configure(with: field)
+        let selectedValue = carData[field]
+        cell.configure(with: field, selectedValue: selectedValue)
         cell.delegate = self
+        
+        switch field {
+        case .brand:
+            let brandNames = viewModel.brands.map { $0.name }
+            cell.setOptions(brandNames)
+        case .model:
+            let modelNames = viewModel.models.map { $0.name }
+            cell.setOptions(modelNames)
+        case .generation:
+            let generationNames = viewModel.generations.map { $0.name }
+            cell.setOptions(generationNames)
+        case .fuelType:
+            cell.setOptions(["Бензин", "Дизель", "Гибрид", "Электро"])
+        case .transmisson:
+            cell.setOptions(["Механика", "Автомат", "Робот"])
+        case .driveType:
+            cell.setOptions(["Передний", "Задний", "Полный"])
+        default:
+            break
+        }
         return cell
     }
     
@@ -114,5 +151,23 @@ extension NewCarViewController: NewCarCellDelegate {
     func newCarCell(_ cell: NewCarCell, didSelect option: String, for field: CarField) {
         carData[field] = option
         print("Выбрано: \(field.rawValue) = \(option)")
+        
+        switch field {
+        case .brand:
+            if let selectedBrand = viewModel.brands.first(where: { $0.name == option }) {
+                viewModel.fetchModels(for: selectedBrand.id)
+                carData[.model] = nil
+                carData[.generation] = nil
+            }
+        case .model:
+            if let brandName = carData[.brand],
+               let brand = viewModel.brands.first(where: { $0.name == brandName }),
+               let model = viewModel.models.first(where: { $0.name == option }) {
+                viewModel.fetchGenerations(for: brand.id, modelID: model.id)
+                carData[.generation] = nil
+            }
+        default:
+            break
+        }
     }
 }
