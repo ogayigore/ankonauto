@@ -10,13 +10,15 @@ import UIKit
 protocol NewCarCellDelegate: AnyObject {
     func newCarCell(_ cell: NewCarCell, didSelect option: String, for field: CarField)
     func newCarCellDidBeginEditing(_ cell: NewCarCell)
+    func newCarCellDidFinishEditing(_ cell: NewCarCell)
+    func newCarCell(_ cell: NewCarCell, didUpdateText text: String, for field: CarField)
 }
 
 class NewCarCell: UITableViewCell {
     //MARK: - Properties
     
     private var options: [String] = []
-    private var currentField: CarField?
+    private(set) var currentField: CarField?
     weak var delegate: NewCarCellDelegate?
     
     //MARK: - UI Elements
@@ -31,7 +33,7 @@ class NewCarCell: UITableViewCell {
     
     lazy var inputTextField: UITextField = {
         let textField = UITextField()
-        textField.font = UIFont(name: "HelveticaNeue-Medium", size: 14)
+        textField.font = UIFont(name: "HelveticaNeue-Medium", size: 16)
         textField.textColor = .white
         textField.borderStyle = .roundedRect
         textField.backgroundColor = UIColor(white: 1, alpha: 0.1)
@@ -49,11 +51,23 @@ class NewCarCell: UITableViewCell {
         return picker
     }()
     
+    lazy var toolBar: UIToolbar = {
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        let nextButton = UIBarButtonItem(title: "Далее", style: .done, target: self, action: #selector(doneTapped))
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        
+        toolBar.setItems([flexSpace, nextButton], animated: false)
+        return toolBar
+    }()
+    
     //MARK: - Lifecicle
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setup()
+        inputTextField.inputView = picker
+        inputTextField.inputAccessoryView = toolBar
     }
     
     required init?(coder: NSCoder) {
@@ -77,7 +91,8 @@ class NewCarCell: UITableViewCell {
             inputTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             inputTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             inputTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            inputTextField.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+            inputTextField.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            inputTextField.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
@@ -85,19 +100,14 @@ class NewCarCell: UITableViewCell {
         self.currentField = field
         self.options = options
         titleLabel.text = field.rawValue
-        inputTextField.placeholder = field.rawValue.capitalized
+        inputTextField.placeholder = field.rawValue
+        
+        configureKeyboardType(for: field)
         
         if let selected = selectedValue {
             inputTextField.text = selected
         } else {
             inputTextField.text = nil
-        }
-        
-        if options.isEmpty {
-            inputTextField.inputView = nil
-        } else {
-            inputTextField.inputView = options.isEmpty ? nil : picker
-            picker.reloadAllComponents()
         }
         
         inputTextField.reloadInputViews()
@@ -106,11 +116,43 @@ class NewCarCell: UITableViewCell {
     func setOptions(_ options: [String]) {
         self.options = options
         picker.reloadAllComponents()
-        inputTextField.inputView = options.isEmpty ? nil : picker
+        
+        if let field = currentField {
+            switch field {
+            case .dateOfManufacture, .mileage, .engineCapacity, .enginePower, .price:
+                inputTextField.inputView = nil
+            default:
+                inputTextField.inputView = options.isEmpty ? nil : picker
+            }
+        } else {
+            inputTextField.inputView = options.isEmpty ? nil : picker
+        }
+        inputTextField.reloadInputViews()
     }
     
-    @objc private func donePressed() {
+    @objc private func doneTapped() {
         inputTextField.resignFirstResponder()
+        delegate?.newCarCellDidFinishEditing(self)
+    }
+    
+    func focusTextField() {
+        inputTextField.becomeFirstResponder()
+    }
+    
+    func configureKeyboardType(for field: CarField) {
+        switch field {
+        case .dateOfManufacture, .mileage, .engineCapacity, .enginePower, .price:
+            inputTextField.inputView = nil
+            inputTextField.keyboardType = .decimalPad
+        default:
+            inputTextField.inputView = options.isEmpty ? nil : picker
+            inputTextField.keyboardType = .default
+        }
+        inputTextField.inputAccessoryView = toolBar
+    }
+    
+    func getCurrentValue() -> String? {
+        return inputTextField.text
     }
 }
 
@@ -122,19 +164,25 @@ extension NewCarCell: UIPickerViewDataSource, UIPickerViewDelegate {
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return options.count
+        return options.isEmpty ? 1 : options.count
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        options[row]
+        return options.isEmpty ? "Нет данных" : options[row]
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        guard !options.isEmpty else { return }
         let selectedValue = options[row]
         inputTextField.text = selectedValue
         if let field = currentField {
             delegate?.newCarCell(self, didSelect: selectedValue, for: field)
         }
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        guard let field = currentField else { return }
+        delegate?.newCarCell(self, didUpdateText: textField.text ?? "", for: field)
     }
 }
 

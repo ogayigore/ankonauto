@@ -56,6 +56,7 @@ final class NewCarViewModel {
         carService.fetchGenerations(for: brandID, modelID: modelID) { result in
             switch result {
             case .success(let generations):
+                print("Поколение: \(generations.map { $0.name })")
                 self.generations = generations
                 self.onDataUpdated?()
             case .failure(let error):

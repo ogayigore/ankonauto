@@ -6,36 +6,27 @@
 //
 
 import UIKit
+import PhotosUI
 
 class NewCarViewController: UIViewController {
     
     //MARK: - Properties
     
     private let viewModel = NewCarViewModel()
+    private weak var activeCell: NewCarCell?
     var carData: [CarField: String] = [:]
+    private var selectedImages: [UIImage] = []
     
     //MARK: - Lifecicle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        viewModel.onDataUpdated = { [weak self] in
-            DispatchQueue.main.async {
-                self?.tableView.reloadData()
-            }
-        }
-        viewModel.fetchBrands { [weak self] result in
-            switch result {
-            case .success(_):
-                DispatchQueue.main.async {
-                    self?.tableView.reloadData()
-                }
-            case .failure(let error):
-                print("Ошибка загрузки брендов: \(error.localizedDescription)")
-            }
-        }
         setupUI()
+        onDataUpdate()
+        fetchBrands()
         addObserver()
         hideKeyboard()
+        nextButtonConfigure()
     }
     
     deinit {
@@ -49,7 +40,10 @@ class NewCarViewController: UIViewController {
         tableView.separatorColor = .clear
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.register(PhotoCollectionCell.self, forCellReuseIdentifier: PhotoCollectionCell.identifier)
         tableView.register(NewCarCell.self, forCellReuseIdentifier: "NewCarCell")
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 100
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -66,6 +60,51 @@ class NewCarViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+    
+    func onDataUpdate() {
+        viewModel.onDataUpdated = { [weak self] in
+            guard let self = self else { return }
+            guard let activeField = self.activeCell?.currentField else { return }
+            
+            let fieldsToReload: [CarField] = [.model, .generation]
+            let indexPaths: [IndexPath] = fieldsToReload.compactMap { field in
+                guard let index = CarField.allCases.firstIndex(of: field) else { return nil }
+                
+                if field == activeField {
+                    return nil
+                }
+                return IndexPath(row: index, section: 0)
+            }
+            
+            DispatchQueue.main.async {
+                self.tableView.reloadRows(at: indexPaths, with: .none)
+            }
+            
+            switch activeField {
+            case .model:
+                let models = self.viewModel.models.map { $0.name }
+                self.activeCell?.setOptions(models)
+            case .generation:
+                let generations = viewModel.generations.map { $0.name }
+                self.activeCell?.setOptions(generations)
+            default:
+                break
+            }
+        }
+    }
+    
+    func fetchBrands() {
+        viewModel.fetchBrands { [weak self] result in
+            switch result {
+            case .success(_):
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+            case .failure(let error):
+                print("Ошибка загрузки брендов: \(error.localizedDescription)")
+            }
+        }
     }
     
     func addObserver() {
@@ -94,14 +133,59 @@ class NewCarViewController: UIViewController {
     @objc func dismissKeyboard() {
         view.endEditing(true)
     }
+    
+    private func nextButtonConfigure() {
+        let nextButton = UIBarButtonItem(title: "Далее", style: .done, target: self, action: #selector(nextTapped))
+        navigationItem.rightBarButtonItem = nextButton
+    }
+    
+    @objc private func nextTapped() {
+        if areAllFieldsFilled() {
+            print("NEXT SCREEN!!!")
+        } else {
+            let alertController = UIAlertController(title: "Есть незаполненные поля", message: "Пожалуйста, заполните все поля", preferredStyle: .alert)
+            let alertAction = UIAlertAction(title: "OK", style: .default)
+            alertController.addAction(alertAction)
+            present(alertController, animated: true)
+        }
+    }
+    
+    private func areAllFieldsFilled() -> Bool {
+        return CarField.allCases.allSatisfy { field in
+            if let value = carData[field], !value.trimmingCharacters(in: .whitespaces).isEmpty {
+                return true
+            } else {
+                return false
+            }
+        }
+    }
+    
+    private func showImagePicker() {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 10
+        config.filter = .images
+        
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
 }
 
 extension NewCarViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return CarField.allCases.count
+        return CarField.allCases.count + 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if indexPath.row == CarField.allCases.count {
+            let cell = tableView.dequeueReusableCell(withIdentifier: PhotoCollectionCell.identifier) as? PhotoCollectionCell ?? PhotoCollectionCell()
+            cell.reload(images: selectedImages)
+            cell.onAddPhotoTapped = { [weak self] in
+                self?.showImagePicker()
+            }
+            return cell
+        }
+        
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "NewCarCell", for: indexPath) as? NewCarCell else {
             return UITableViewCell()
         }
@@ -133,7 +217,7 @@ extension NewCarViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 80
+        return 100
     }
 }
 
@@ -141,9 +225,27 @@ extension NewCarViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension NewCarViewController: NewCarCellDelegate {
     func newCarCellDidBeginEditing(_ cell: NewCarCell) {
+        activeCell = cell
         if let indexPath = tableView.indexPath(for: cell) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 self.tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+            }
+        }
+    }
+    
+    func newCarCellDidFinishEditing(_ cell: NewCarCell) {
+        guard let indexPath = tableView.indexPath(for: cell),
+              let field = cell.currentField,
+              let value = cell.getCurrentValue(), !value.isEmpty else { return }
+        
+        carData[field] = value
+        print("Сохранено: \(field.rawValue) = \(value)")
+        
+        let nextRow = indexPath.row + 1
+        if nextRow < CarField.allCases.count {
+            let nextIndexPath = IndexPath(row: nextRow, section: 0)
+            if let nextCell = tableView.cellForRow(at: nextIndexPath) as? NewCarCell {
+                nextCell.focusTextField()
             }
         }
     }
@@ -170,4 +272,36 @@ extension NewCarViewController: NewCarCellDelegate {
             break
         }
     }
+    
+    func newCarCell(_ cell: NewCarCell, didUpdateText text: String, for field: CarField) {
+        carData[field] = text
+    }
+}
+
+//MARK: - PHPickerViewControllerDelegate
+
+extension NewCarViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        let group = DispatchGroup()
+        
+        for result in results {
+            group.enter()
+            result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] (image, error) in
+                defer { group.leave() }
+                if let uiImage = image as? UIImage {
+                    self?.selectedImages.append(uiImage)
+                }
+            }
+        }
+        
+        group.notify(queue: .main) {
+            if let index = CarField.allCases.count as Int? {
+                let indexPath = IndexPath(row: index, section: 0)
+                self.tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+        }
+    }
+    
+    
 }
